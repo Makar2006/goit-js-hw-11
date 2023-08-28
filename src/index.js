@@ -15,6 +15,20 @@ const perPage = 40;
 searchFormEl.addEventListener('submit', whenSubmit);
 loadMoreEl.addEventListener('click', loadMoreClick);
 
+function onFetchError(error) {
+  console.log(error);
+
+  Notiflix.Notify.failure(
+    'Sorry, there are no images matching your search query. Please try again.',
+    {
+      position: 'center-center',
+      timeout: 5000,
+      width: '400px',
+      fontSize: '24px',
+    }
+  );
+}
+
 async function whenSubmit(e) {
   e.preventDefault();
   page = 1;
@@ -59,33 +73,6 @@ async function whenSubmit(e) {
     });
 }
 
-function loadMoreClick() {
-  page += 1;
-  simpleLightBox.destroy();
-  loadMoreEl.disabled = true;
-
-  fetchImages(query, page, perPage)
-    .then(response => {
-      galleryEl.insertAdjacentHTML('beforeend', createMarkup(response.hits));
-      simpleLightBox = new SimpleLightbox('.gallery a', {
-        captions: true,
-        captionsData: 'alt',
-        captionPosition: 'bottom',
-        captionDelay: 250,
-      }).refresh();
-      const totalPages = Math.ceil(response.totalHits / perPage);
-      if (page < totalPages) {
-        loadMoreEl.classList.replace('load-more-hidden', 'load-more');
-        loadMoreEl.disabled = false;
-      } else {
-        Notiflix.Notify.failure(
-          "We're sorry, but you've reached the end of search results."
-        );
-        loadMoreEl.classList.replace('load-more', 'load-more-hidden');
-      }
-    })
-    .catch(onFetchError);
-}
 function createMarkup(arr) {
   return arr
     .map(
@@ -114,16 +101,31 @@ function createMarkup(arr) {
     )
     .join('');
 }
-function onFetchError(error) {
-  console.log(error);
 
-  Notiflix.Notify.failure(
-    'Sorry, there are no images matching your search query. Please try again.',
-    {
-      position: 'center-center',
-      timeout: 5000,
-      width: '400px',
-      fontSize: '24px',
-    }
-  );
+function loadMoreClick() {
+  page += 1;
+  simpleLightBox.destroy();
+  loadMoreEl.disabled = true;
+
+  fetchImages(query, page, perPage)
+    .then(response => {
+      galleryEl.insertAdjacentHTML('beforeend', createMarkup(response.hits));
+      simpleLightBox = new SimpleLightbox('.gallery a', {
+        captions: true,
+        captionsData: 'alt',
+        captionPosition: 'bottom',
+        captionDelay: 250,
+      }).refresh();
+      const totalPages = Math.ceil(response.totalHits / perPage);
+      if (page < totalPages) {
+        loadMoreEl.classList.replace('load-more-hidden', 'load-more');
+        loadMoreEl.disabled = false;
+      } else {
+        Notiflix.Notify.failure(
+          "We're sorry, but you've reached the end of search results."
+        );
+        loadMoreEl.classList.replace('load-more', 'load-more-hidden');
+      }
+    })
+    .catch(onFetchError);
 }
